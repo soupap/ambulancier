@@ -1,316 +1,257 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:incident_reporter/models/assignment_stage.dart';
+import 'package:incident_reporter/services/driver_app_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final scale = screenWidth < 700 ? 0.96 : 1.0;
+    final controller = DriverAppController.instance;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF101826),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: DecoratedBox(
-              decoration: const BoxDecoration(color: Color(0xFFF4F7FA)),
-              child: Column(
-                children: [
-                  Container(
-                    height: 56 * scale,
-                    padding: EdgeInsets.symmetric(horizontal: 16 * scale),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Colors.black.withValues(alpha: 0.06),
+    return Obx(() {
+      final profile = controller.profile;
+      final vehicle = controller.vehicle;
+
+      if (profile == null) {
+        return Scaffold(
+          appBar: AppBar(title: const Text('Driver profile')),
+          body: const Center(child: Text('Profile not loaded yet.')),
+        );
+      }
+
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Driver profile'),
+          actions: [
+            IconButton(
+              onPressed: controller.refreshAll,
+              icon: const Icon(Icons.refresh),
+            ),
+            IconButton(
+              onPressed: controller.logout,
+              icon: const Icon(Icons.logout),
+            ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: const Color(0xFFFFE6EA),
+                      child: Text(
+                        profile.name.isNotEmpty
+                            ? profile.name[0].toUpperCase()
+                            : 'D',
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFDA3E52),
                         ),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.person,
-                          color: const Color(0xFF1E5CE4),
-                          size: 18 * scale,
-                        ),
-                        SizedBox(width: 10 * scale),
-                        Text(
-                          'PROFILE',
-                          style: TextStyle(
-                            color: const Color(0xFF1E5CE4),
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.4,
-                            fontSize: 13 * scale,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(14 * scale),
+                    const SizedBox(width: 16),
+                    Expanded(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(16 * scale),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16 * scale),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.06),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 30 * scale,
-                                  backgroundColor: const Color(0xFFE7F0FF),
-                                  child: Icon(
-                                    Icons.account_circle,
-                                    size: 40 * scale,
-                                    color: const Color(0xFF1D6EDA),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  controller.sessionToken ?? 'ID: --',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                SizedBox(width: 12 * scale),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Ambulance Driver',
-                                        style: TextStyle(
-                                          fontSize: 11 * scale,
-                                          color: Colors.black54,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2 * scale),
-                                      Text(
-                                        'John Paramedic',
-                                        style: TextStyle(
-                                          fontSize: 19 * scale,
-                                          color: const Color(0xFF222831),
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2 * scale),
-                                      Text(
-                                        'ID: AMB-2391',
-                                        style: TextStyle(
-                                          fontSize: 12 * scale,
-                                          color: const Color(0xFF637086),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.copy, size: 18),
+                                tooltip: 'Copy',
+                                onPressed: controller.sessionToken == null
+                                    ? null
+                                    : () {
+                                        Clipboard.setData(
+                                          ClipboardData(
+                                              text: controller.sessionToken!),
+                                        );
+                                        Get.snackbar(
+                                          'Copied',
+                                          'Session token copied to clipboard',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                        );
+                                      },
+                              ),
+                            ],
+                          ),
+                          Text(
+                            profile.name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
-                          SizedBox(height: 12 * scale),
-                          _InfoTile(
-                            title: 'Vehicle',
-                            value: 'Ambulance Unit A-17',
-                            icon: Icons.local_hospital,
-                            scale: scale,
+                          const SizedBox(height: 4),
+                          Text(profile.email),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _StatusPill(label: profile.role),
+                              _StatusPill(label: profile.status),
+                              if (profile.ambulanceId != null)
+                                _StatusPill(label: profile.ambulanceId!),
+                            ],
                           ),
-                          SizedBox(height: 10 * scale),
-                          _InfoTile(
-                            title: 'Shift',
-                            value: '08:00 - 20:00',
-                            icon: Icons.schedule,
-                            scale: scale,
-                          ),
-                          SizedBox(height: 10 * scale),
-                          _InfoTile(
-                            title: 'Dispatch Zone',
-                            value: 'Central District',
-                            icon: Icons.map,
-                            scale: scale,
-                          ),
-                          SizedBox(height: 6 * scale),
                         ],
                       ),
                     ),
-                  ),
-                  Container(
-                    height: 66 * scale,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24 * scale,
-                      vertical: 8 * scale,
-                    ),
-                    color: Colors.white,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _BottomIcon(
-                          label: 'MISSIONS',
-                          icon: Icons.assignment_outlined,
-                          active: false,
-                          scale: scale,
-                          onTap: () {
-                            if (Navigator.of(context).canPop()) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        ),
-                        _BottomIcon(
-                          label: 'MAP',
-                          icon: Icons.map,
-                          active: false,
-                          scale: scale,
-                          onTap: () {
-                            Navigator.of(
-                              context,
-                            ).popUntil((route) => route.isFirst);
-                          },
-                        ),
-                        _BottomIcon(
-                          label: 'PROFILE',
-                          icon: Icons.person_outline,
-                          active: true,
-                          scale: scale,
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+            _Section(
+              title: 'Assignment summary',
+              children: [
+                _InfoTile(
+                  label: 'Current stage',
+                  value: controller.missionStage.label,
+                ),
+                _InfoTile(
+                  label: 'Hospital',
+                  value: controller.hospital?.name ?? 'Not assigned',
+                ),
+                _InfoTile(
+                  label: 'Vehicle',
+                  value: vehicle?.name ?? 'Unknown ambulance',
+                ),
+                _InfoTile(
+                  label: 'Vehicle status',
+                  value: vehicle?.status ?? '--',
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _Section(
+              title: 'Driver details',
+              children: [
+                _InfoTile(label: 'Phone', value: profile.phone ?? '--'),
+                _InfoTile(label: 'License', value: profile.license ?? '--'),
+                _InfoTile(label: 'Station', value: profile.station ?? '--'),
+                _InfoTile(
+                  label: 'Experience',
+                  value: profile.experience == null
+                      ? '--'
+                      : '${profile.experience} years',
+                ),
+                _InfoTile(
+                  label: 'Rating',
+                  value: profile.rating == null
+                      ? '--'
+                      : profile.rating!.toStringAsFixed(1),
+                ),
+                _InfoTile(
+                  label: 'Total missions',
+                  value: profile.totalMissions?.toString() ?? '--',
+                ),
+                _InfoTile(
+                  label: 'This month',
+                  value: profile.missionsThisMonth?.toString() ?? '--',
+                ),
+                _InfoTile(
+                  label: 'Certifications',
+                  value: profile.certifications.isEmpty
+                      ? '--'
+                      : profile.certifications.join(', '),
+                  multiline: true,
+                ),
+              ],
+            ),
+          ],
         ),
-      ),
+      );
+    });
+  }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 10),
+        Card(
+          child: Column(children: children),
+        ),
+      ],
     );
   }
 }
 
 class _InfoTile extends StatelessWidget {
   const _InfoTile({
-    required this.title,
+    required this.label,
     required this.value,
-    required this.icon,
-    required this.scale,
+    this.multiline = false,
   });
 
-  final String title;
+  final String label;
   final String value;
-  final IconData icon;
-  final double scale;
+  final bool multiline;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12 * scale),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14 * scale),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34 * scale,
-            height: 34 * scale,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF2FF),
-              borderRadius: BorderRadius.circular(10 * scale),
-            ),
-            child: Icon(icon, size: 17 * scale, color: const Color(0xFF1D6EDA)),
-          ),
-          SizedBox(width: 10 * scale),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 10 * scale,
-                    color: Colors.black45,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 2 * scale),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 15 * scale,
-                    color: const Color(0xFF2A303A),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    return ListTile(
+      title: Text(label),
+      subtitle: Text(
+        value,
+        maxLines: multiline ? 4 : 1,
+        overflow: multiline ? TextOverflow.visible : TextOverflow.ellipsis,
       ),
     );
   }
 }
 
-class _BottomIcon extends StatelessWidget {
-  const _BottomIcon({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.scale,
-    required this.onTap,
-  });
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label});
 
   final String label;
-  final IconData icon;
-  final bool active;
-  final double scale;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12 * scale),
-      onTap: onTap,
-      child: SizedBox(
-        width: 74 * scale,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 30 * scale,
-              height: 30 * scale,
-              decoration: BoxDecoration(
-                color: active ? const Color(0xFFE8F0FF) : Colors.transparent,
-                borderRadius: BorderRadius.circular(12 * scale),
-              ),
-              child: Icon(
-                icon,
-                size: 17 * scale,
-                color:
-                    active ? const Color(0xFF2B60E0) : const Color(0xFF98A4B8),
-              ),
-            ),
-            SizedBox(height: 1 * scale),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 9 * scale,
-                fontWeight: FontWeight.w700,
-                color:
-                    active ? const Color(0xFF2B60E0) : const Color(0xFF98A4B8),
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFE6EA),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: Color(0xFFDA3E52),
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

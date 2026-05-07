@@ -1,6 +1,6 @@
 {
-    "name": "ambulancier",
-    "short_name": "ambulancier",
+    "name": "incident_reporter",
+    "short_name": "incident_reporter",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -1,22 +1,12 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:ambulancier/main.dart';
+import 'package:incident_reporter/screens/login_screen.dart';
 
 void main() {
-  testWidgets('App renders mission header and map control', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(const AmbulanceApp());
+  testWidgets('login screen renders keycloak action', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
-    expect(find.byIcon(Icons.my_location), findsOneWidget);
-    expect(find.text('MISSION STATUS'), findsOneWidget);
+    expect(find.text('Ambulancier'), findsOneWidget);
+    expect(find.text('Sign In with Keycloak'), findsOneWidget);
   });
 }
